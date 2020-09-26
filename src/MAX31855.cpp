@@ -5,7 +5,7 @@ Arduino Library for Microchip SRAM access\n\n
 See main library header file for details
 */
 #include "MAX31855.h" // Include the header definition
-MAX31855_Class::MAX31855_Class()  {}  ///< Empty & unused class constructor
+//MAX31855_Class::MAX31855_Class()  {}  ///< Empty & unused class constructor
 MAX31855_Class::~MAX31855_Class() {}  ///< Empty & unused class destructor
 
 /***************************************************************************************************************//*!
@@ -25,7 +25,9 @@ bool MAX31855_Class::begin(const uint8_t chipSelect, const bool reverse)
   _cs       = chipSelect;  // Copy value for later use
   pinMode(_cs, OUTPUT);    // Make the chip select pin output
   digitalWrite(_cs, HIGH); // High means ignore master
-  SPI.begin();             // Initialize SPI communication
+
+  _spi.begin();   // Initialize SPI communication
+  SPI.begin()  ;        
   readRaw();               // Try to read the raw data
   if (_errorCode)
   {
@@ -146,13 +148,13 @@ int32_t MAX31855_Class::readProbe()
   {
     dataBuffer = dataBuffer >> 18;                   // remove unused ambient values
     if(dataBuffer & 0x2000) dataBuffer |= 0xFFFE000; // 2s complement bits if negative
-    dataBuffer *= (int32_t)250;                      // Sensitivity is 0.25°C
+    dataBuffer *= (int32_t)250;                      // Sensitivity is 0.25ï¿½C
   } // of if we have an error
   if (_reversed) // If the thermocouple pins are reverse we have to switch readings around
   {
     int32_t ambientBuffer = (rawBuffer&0xFFFF)>>4;          // remove probe & fault values
     if(ambientBuffer & 0x2000) ambientBuffer |= 0xFFFF000;  // 2s complement bits if negative
-    ambientBuffer = ambientBuffer*(int32_t)625/(int32_t)10; // Sensitivity is 0.0625°C
+    ambientBuffer = ambientBuffer*(int32_t)625/(int32_t)10; // Sensitivity is 0.0625ï¿½C
     dataBuffer = (ambientBuffer-dataBuffer)+ambientBuffer;  // Invert the delta temperature
   } // of if-then the thermocouple pins reversed
   return dataBuffer;
@@ -172,7 +174,7 @@ int32_t MAX31855_Class::readAmbient()
   {
     dataBuffer = (dataBuffer&0xFFFF)>>4;              // remove probe & fault values
     if(dataBuffer & 0x2000) dataBuffer |= 0xFFFF000;  // 2s complement bits if negative
-    dataBuffer = dataBuffer*(int32_t)625/(int32_t)10; // Sensitivity is 0.0625°C
+    dataBuffer = dataBuffer*(int32_t)625/(int32_t)10; // Sensitivity is 0.0625ï¿½C
   } // of if we have an error
   return dataBuffer;
 } // of method readAmbient()

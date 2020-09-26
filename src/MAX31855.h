@@ -59,7 +59,10 @@ Version| Date       | Developer                     | Comments
   class MAX31855_Class
   {
     public:
-      MAX31855_Class();
+      MAX31855_Class(SPIClass& spi=SPI):
+       _spi(spi)
+	    {
+	    }
       ~MAX31855_Class();
       bool    begin(const uint8_t cs,const bool reverse = false); // Start using hardware SPI
       bool    begin(const uint8_t cs, const uint8_t miso, const uint8_t sck, const bool reverse = false); // Soft SPI
@@ -71,5 +74,6 @@ Version| Date       | Developer                     | Comments
       uint8_t _cs,_miso,_sck;    ///< Store SPI pin values
       uint8_t _errorCode;        ///< MAX31855 fault code bits
       bool    _reversed = false; ///< Set to true if contacts reversed
+      SPIClass& _spi;
   }; // of MAX31855 class definition
 #endif
