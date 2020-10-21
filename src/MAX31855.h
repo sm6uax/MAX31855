@@ -49,7 +49,7 @@ Version| Date       | Developer                     | Comments
   /*****************************************************************************************************************
   ** Declare constants used in the class                                                                          **
   *****************************************************************************************************************/
-  const uint16_t SPI_DELAY_MICROSECONDS = 1000; ///< Wait time for SPI state changes
+  const uint16_t SPI_DELAY_MICROSECONDS = 2000; ///< Wait time for SPI state changes
   const uint8_t  READING_RETRIES        =   64; ///< Number of retries for reading
 
 /***************************************************************************************************************//*!
@@ -59,12 +59,12 @@ Version| Date       | Developer                     | Comments
   class MAX31855_Class
   {
     public:
-      MAX31855_Class(SPIClass& spi=SPI):
+      MAX31855_Class(SPIClass& spi=SPI2):
        _spi(spi)
 	    {
 	    }
       ~MAX31855_Class();
-      bool    begin(const uint8_t cs,const bool reverse = false); // Start using hardware SPI
+      bool    begin(const uint8_t cs,uint8_t *errcode,const bool reverse = false); // Start using hardware SPI
       bool    begin(const uint8_t cs, const uint8_t miso, const uint8_t sck, const bool reverse = false); // Soft SPI
       int32_t readProbe();       // Return probe temperature
       int32_t readAmbient();     // Return ambient/die temperature

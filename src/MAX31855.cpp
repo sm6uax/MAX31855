@@ -19,7 +19,7 @@ MAX31855_Class::~MAX31855_Class() {}  ///< Empty & unused class destructor
 * @param[in] reverse Option boolean switch to indicate that the wires are (intentionally) reversed
 * @return    true if the device could be read, otherwise false
 ******************************************************************************************************************/
-bool MAX31855_Class::begin(const uint8_t chipSelect, const bool reverse) 
+bool MAX31855_Class::begin(const uint8_t chipSelect,uint8_t *errcode , const bool reverse) 
 {
   _reversed = reverse;     // Set to true if contacts reversed
   _cs       = chipSelect;  // Copy value for later use
@@ -28,6 +28,7 @@ bool MAX31855_Class::begin(const uint8_t chipSelect, const bool reverse)
 
   _spi.begin();   // Initialize SPI communication       
   readRaw();               // Try to read the raw data
+  *errcode =_errorCode;
   if (_errorCode)
   {
     return false;
@@ -55,8 +56,8 @@ bool MAX31855_Class::begin(const uint8_t chipSelect,const uint8_t miso,const uin
 {
   _reversed = reverse;     // Set to true if contacts reversed
   _cs       = chipSelect;  // Store SPI Chip-Select pin
-  _miso     = miso;        // Store SPI Master-in Slave-Out pin
-  _sck      = sck;         // Store SPI System clock pin
+  _miso     = 14;//miso;        // Store SPI Master-in Slave-Out pin
+  _sck      = 16;//sck;         // Store SPI System clock pin
   pinMode(_cs, OUTPUT);    // Make the chip select pin output
   digitalWrite(_cs, HIGH); // High means ignore master
   pinMode(_sck, OUTPUT);   // Make system clock pin output
@@ -94,19 +95,21 @@ int32_t MAX31855_Class::readRaw()
   int32_t dataBuffer = 0;
   for(uint8_t retryCounter=0;retryCounter<READING_RETRIES;retryCounter++) // Loop until good reading or overflow
   {
-    digitalWrite(_cs,LOW);                     // Tell MAX31855 that it is active
-    delayMicroseconds(SPI_DELAY_MICROSECONDS); // Give device time to respond
+    //digitalWrite(_cs,LOW);                     // Tell MAX31855 that it is active
+    //delayMicroseconds(SPI_DELAY_MICROSECONDS); // Give device time to respond
     if(_sck==0) // Hardware SPI
     {
-      SPI.beginTransaction(SPISettings(14000000,MSBFIRST,SPI_MODE0)); // Start transaction at 14MHz MSB
-      dataBuffer   = SPI.transfer(0);                                 // Read a byte
+      _spi.beginTransaction(SPISettings(4000000,MSBFIRST,SPI_MODE0)); // Start transaction at 4MHz MSB
+      digitalWrite(_cs,LOW);                     // Tell MAX31855 that it is active
+      delayMicroseconds(SPI_DELAY_MICROSECONDS);
+      dataBuffer   = _spi.transfer(0);                                 // Read a byte
       dataBuffer <<= 8;                                               // Shift over left 8 bits
-      dataBuffer  |= SPI.transfer(0);                                 // Read a byte
+      dataBuffer  |= _spi.transfer(0);                                 // Read a byte
       dataBuffer <<= 8;                                               // Shift over left 8 bits
-      dataBuffer  |= SPI.transfer(0);                                 // Read a byte
+      dataBuffer  |= _spi.transfer(0);                                 // Read a byte
       dataBuffer <<= 8;                                               // Shift over left 8 bits
-      dataBuffer  |= SPI.transfer(0);                                 // Read a byte
-      SPI.endTransaction();                                           // Terminate SPI transaction
+      dataBuffer  |= _spi.transfer(0);                                 // Read a byte
+      _spi.endTransaction();                                           // Terminate SPI transaction
     }
     else  // Software SPI
     {
@@ -146,7 +149,9 @@ int32_t MAX31855_Class::readProbe()
   else
   {
     dataBuffer = dataBuffer >> 18;                   // remove unused ambient values
-    if(dataBuffer & 0x2000) dataBuffer |= 0xFFFE000; // 2s complement bits if negative
+    if(dataBuffer & 0x2000) {
+      dataBuffer |= 0xFFFE000; // 2s complement bits if negative
+    }
     dataBuffer *= (int32_t)250;                      // Sensitivity is 0.25�C
   } // of if we have an error
   if (_reversed) // If the thermocouple pins are reverse we have to switch readings around
