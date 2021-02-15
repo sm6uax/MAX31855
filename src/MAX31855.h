@@ -66,7 +66,7 @@ Version| Date       | Developer                     | Comments
       ~MAX31855_Class();
       bool    begin(const uint8_t cs,uint8_t *errcode,const bool reverse = false); // Start using hardware SPI
       bool    begin(const uint8_t cs, const uint8_t miso, const uint8_t sck, const bool reverse = false); // Soft SPI
-      int32_t readProbe();       // Return probe temperature
+      int32_t readProbe(uint8_t *errcode);       // Return probe temperature
       int32_t readAmbient();     // Return ambient/die temperature
       uint8_t fault();           // return any fault codes detected
     private:

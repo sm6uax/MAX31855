@@ -141,9 +141,12 @@ int32_t MAX31855_Class::readRaw()
 }          precision is lost
 * @return  Probe Temperature in milli/degrees
 *******************************************************************************************************************/
-int32_t MAX31855_Class::readProbe()
+int32_t MAX31855_Class::readProbe(uint8_t *errcode)
 {
-  int32_t rawBuffer  = readRaw();                    // Read the raw data into variable
+  
+  int32_t rawBuffer  = readRaw();    
+  *errcode = _errorCode;
+  // Read the raw data into variable
   int32_t dataBuffer = rawBuffer;                    // Copy to working variable
   if (dataBuffer & B111) dataBuffer = INT32_MAX;     // if error bits set then return error
   else
